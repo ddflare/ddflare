@@ -7,6 +7,7 @@ BUILD_DIR:=bin
 LDFLAGS := -w -s
 LDFLAGS += -X "github.com/fgiudici/ddflare/pkg/version.Version=${GIT_VERSION}"
 
+COVERFILE?=coverage.out
 
 .PHONY: build
 build:
@@ -14,4 +15,8 @@ build:
 
 .PHONY: clean
 clean:
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR) && rm $(COVERFILE)
+
+.PHONY: unit-tests
+unit-tests:
+	@go test -coverprofile $(COVERFILE) ./pkg/...
