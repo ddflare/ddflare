@@ -15,7 +15,7 @@ build:
 
 .PHONY: clean
 clean:
-	@rm -rf $(BUILD_DIR) && rm $(COVERFILE)
+	@rm -rf $(BUILD_DIR) && rm -f $(COVERFILE)
 
 .PHONY: unit-tests
 unit-tests:
