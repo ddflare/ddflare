@@ -18,23 +18,23 @@ package cmd
 
 import (
 	"log"
+	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 )
 
 // This is called by main.main().
 func Execute() {
-	rootCmd := &cobra.Command{
-		Use:   "ddflare",
-		Short: "update dns entries via cloudflare APIs",
+	app := &cli.App{
+		Usage: "update DNS entries via cloudflare APIs",
+		Commands: []*cli.Command{
+			newGetCommand(),
+			newSetCommand(),
+			newVersionCommand(),
+		},
 	}
 
-	rootCmd.AddCommand(
-		newGetCommand(),
-		newSetCommand(),
-		newVersionCommand(),
-	)
-	if err := rootCmd.Execute(); err != nil {
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }

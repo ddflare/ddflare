@@ -20,22 +20,29 @@ import (
 	"fmt"
 
 	"github.com/fgiudici/ddflare/pkg/net"
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 )
 
-func newGetCommand() *cobra.Command {
-	var quiet *bool
-
-	cmd := &cobra.Command{
-		Use:   "get {domain}",
-		Short: "retrieve the IP address of the target domain",
-		Args:  cobra.MatchAll(cobra.ExactArgs(1)),
-		Long: `resolves the host IP address of the domain passed as argument.
-The argument "pubIp" is special and allows to retrieve the current public address`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			domain := args[0]
+func newGetCommand() *cli.Command {
+	cmd := &cli.Command{
+		Name:  "get",
+		Usage: "retrieve the IP address of the target domain",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "quiet",
+				Aliases: []string{"q"},
+				Value:   false,
+				Usage:   "quiet mode",
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			domain := cCtx.Args().First()
+			if domain == "" {
+				domain = "pubIp"
+			}
 			var ipAdd string
 			var err error
+			var quiet = cCtx.Bool("quiet")
 
 			switch domain {
 			case "pubIp":
@@ -47,7 +54,7 @@ The argument "pubIp" is special and allows to retrieve the current public addres
 			if err != nil {
 				return err
 			}
-			if *quiet {
+			if quiet {
 				fmt.Printf("%s", ipAdd)
 			} else {
 				fmt.Printf("%s --> %s\n", domain, ipAdd)
@@ -55,8 +62,5 @@ The argument "pubIp" is special and allows to retrieve the current public addres
 			return nil
 		},
 	}
-
-	quiet = cmd.Flags().BoolP("quiet", "q", false, "quiet mode")
-
 	return cmd
 }

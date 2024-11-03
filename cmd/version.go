@@ -19,17 +19,18 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 
 	"github.com/fgiudici/ddflare/pkg/version"
 )
 
-func newVersionCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "version",
-		Short: "print the version and exit",
-		Run: func(cmd *cobra.Command, args []string) {
+func newVersionCommand() *cli.Command {
+	cmd := &cli.Command{
+		Name:  "version",
+		Usage: "print the version and exit",
+		Action: func(cCtx *cli.Context) error {
 			fmt.Println(version.Version)
+			return nil
 		},
 	}
 	return cmd

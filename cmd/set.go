@@ -18,30 +18,38 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/fgiudici/ddflare/pkg/ddns"
 	"github.com/fgiudici/ddflare/pkg/net"
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 )
 
-func newSetCommand() *cobra.Command {
-	var ip, token *string
-
-	cmd := &cobra.Command{
-		Use:   "set {dnsName}",
-		Short: "updates the dnsName domain A record to the ipAddress passed as argument",
-		Args:  cobra.MatchAll(cobra.MinimumNArgs(1), cobra.MaximumNArgs(2)),
-		Long: `updates dnsName to the ip address passed with the --ip flag (or will use the current)
-public ip if --ip is missing). The --token flag is required to authenticate to the
-Cloudflare backend.
-Example usage:
-	ddflare set -t 7rvDyd2i3AqwesPtR_3wWWIoNNiGeoBmKQoiuyKj host.example.com`,
-
-		RunE: func(cmd *cobra.Command, args []string) error {
-			dnsName := args[0]
-			ipAdd := *ip
+func newSetCommand() *cli.Command {
+	cmd := &cli.Command{
+		Name:      "set",
+		Usage:     "updates the A record of the fqdn passed as argument",
+		Args:      true,
+		ArgsUsage: "fqdn",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "ip",
+				Aliases: []string{"i"},
+				Usage:   "ip address (current public IP if not specified)",
+				EnvVars: []string{"IPADDRESS"},
+			},
+			&cli.StringFlag{
+				Name:     "token",
+				Aliases:  []string{"t"},
+				Usage:    "token",
+				EnvVars:  []string{"TOKEN"},
+				Required: true,
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			fqdn := cCtx.Args().First()
+			ipAdd := cCtx.String("ip")
+			token := cCtx.String("token")
 
 			if ipAdd == "" {
 				var err error
@@ -50,28 +58,22 @@ Example usage:
 				}
 			}
 
-			domain := strings.Split(dnsName, ".")
+			domain := strings.Split(fqdn, ".")
 			if len(domain) < 2 {
-				return fmt.Errorf("%q is not a valid dns name", dnsName)
+				return fmt.Errorf("%q is not a valid dns name", fqdn)
 			}
 			zoneName := domain[len(domain)-2] + "." + domain[len(domain)-1]
 
 			ddns := ddns.Cloudflare{}
-			if err := ddns.New(*token); err != nil {
+			if err := ddns.New(token); err != nil {
 				return err
 			}
 
-			if err := ddns.Write(dnsName, zoneName, ipAdd); err != nil {
+			if err := ddns.Write(fqdn, zoneName, ipAdd); err != nil {
 				return err
 			}
 			return nil
 		},
-	}
-
-	ip = cmd.Flags().StringP("ip", "i", "", "ip address")
-	token = cmd.Flags().StringP("token", "t", "", "token")
-	if err := cmd.MarkFlagRequired("token"); err != nil {
-		log.Fatal(err)
 	}
 
 	return cmd
