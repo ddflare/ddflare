@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ddns
+package cflare
 
 import (
 	"testing"
@@ -35,19 +35,19 @@ func TestNew(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			cf := Cloudflare{}
-			err := cf.New(tt.token)
+			cflare := New()
+			err := cflare.Init(tt.token)
 			if tt.fails {
 				if err == nil {
-					t.Fatalf("expected failure with token %q but got %+v", tt.token, cf.api)
+					t.Fatalf("expected failure with token %q but got %+v", tt.token, cflare.api)
 				}
 				return
 			}
 			if err != nil {
 				t.Fatalf("unexpected failure: %v", err)
 			}
-			if cf.api.APIToken != tt.token {
-				t.Fatalf("expected token %q but got %q", tt.token, cf.api.APIToken)
+			if cflare.api.APIToken != tt.token {
+				t.Fatalf("expected token %q but got %q", tt.token, cflare.api.APIToken)
 			}
 		})
 	}
