@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fgiudici/ddflare/pkg/cflare"
 	"github.com/fgiudici/ddflare/pkg/ddns"
 	"github.com/fgiudici/ddflare/pkg/net"
 	"github.com/urfave/cli/v2"
@@ -64,8 +65,10 @@ func newSetCommand() *cli.Command {
 			}
 			zoneName := domain[len(domain)-2] + "." + domain[len(domain)-1]
 
-			ddns := ddns.Cloudflare{}
-			if err := ddns.New(token); err != nil {
+			// cflare is the only backend right now
+			var ddns ddns.Recorder = cflare.New()
+
+			if err := ddns.Init(token); err != nil {
 				return err
 			}
 
