@@ -1,5 +1,8 @@
 GIT_COMMIT?=$(shell git rev-parse --short HEAD)
 GIT_VERSION?=$(shell git describe --tags 2>/dev/null || echo "v0.0.0-"$(GIT_COMMIT))
+IMG_REG?=ghcr.io
+IMG_REPO?=fgiudici/ddflare
+IMG_TAG?=$(GIT_VERSION)
 
 export ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR:=bin
@@ -16,6 +19,13 @@ build:
 .PHONY: clean
 clean:
 	@rm -rf $(BUILD_DIR) && rm -f $(COVERFILE)
+
+.PHONY: docker
+docker:
+	DOCKER_BUILDKIT=1 docker build \
+		-f Dockerfile \
+		--build-arg "VERSION=${GIT_VERSION}" \
+		-t ${IMG_REG}/${IMG_REPO}:${IMG_TAG}
 
 .PHONY: unit-tests
 unit-tests:
