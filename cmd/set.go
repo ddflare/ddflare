@@ -51,19 +51,20 @@ func newSetCommand() *cli.Command {
 			fqdn := cCtx.Args().First()
 			ipAdd := cCtx.String("ip")
 			token := cCtx.String("token")
+			var (
+				err      error
+				zoneName string
+			)
 
 			if ipAdd == "" {
-				var err error
 				if ipAdd, err = net.GetMyPub(); err != nil {
 					return err
 				}
 			}
 
-			domain := strings.Split(fqdn, ".")
-			if len(domain) < 2 {
-				return fmt.Errorf("%q is not a valid dns name", fqdn)
+			if zoneName, err = getZone(fqdn); err != nil {
+				return err
 			}
-			zoneName := domain[len(domain)-2] + "." + domain[len(domain)-1]
 
 			// cflare is the only backend right now
 			var ddns ddns.Recorder = cflare.New()
@@ -80,4 +81,13 @@ func newSetCommand() *cli.Command {
 	}
 
 	return cmd
+}
+
+func getZone(fqdn string) (string, error) {
+	domain := strings.Split(fqdn, ".")
+	if len(domain) < 2 {
+		return "", fmt.Errorf("%q is not a valid dns name", fqdn)
+	}
+	zone := domain[len(domain)-2] + "." + domain[len(domain)-1]
+	return zone, nil
 }
