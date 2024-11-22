@@ -17,8 +17,11 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"log"
+	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 )
@@ -31,6 +34,40 @@ func Execute() {
 			newGetCommand(),
 			newSetCommand(),
 			newVersionCommand(),
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "loglevel",
+				Aliases: []string{"l"},
+				Usage: "set the log level [" + strings.Join([]string{
+					slog.LevelDebug.String(),
+					slog.LevelInfo.String(),
+					slog.LevelWarn.String(),
+					slog.LevelError.String(),
+				}, ",") + "]",
+				EnvVars: []string{"LOGLEVEL"},
+				Value:   slog.LevelInfo.String(),
+			},
+		},
+		Before: func(cCtx *cli.Context) error {
+			loglevel := cCtx.String("loglevel")
+			var slogLvl slog.Level
+			switch loglevel {
+			case slog.LevelDebug.String():
+				slogLvl = slog.LevelDebug
+			case slog.LevelInfo.String():
+				slogLvl = slog.LevelInfo
+			case slog.LevelWarn.String():
+				slogLvl = slog.LevelWarn
+			case slog.LevelError.String():
+				slogLvl = slog.LevelError
+			default:
+				return fmt.Errorf("unknown log level: %s", loglevel)
+			}
+			logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slogLvl}))
+			slog.SetDefault(logger)
+			slog.Debug("logging started", "Log Level", slogLvl.String())
+			return nil
 		},
 	}
 

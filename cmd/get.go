@@ -18,10 +18,13 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/fgiudici/ddflare/pkg/net"
 	"github.com/urfave/cli/v2"
 )
+
+const pubIP = "PublicIP"
 
 func newGetCommand() *cli.Command {
 	cmd := &cli.Command{
@@ -36,28 +39,29 @@ func newGetCommand() *cli.Command {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			domain := cCtx.Args().First()
-			if domain == "" {
-				domain = "pubIp"
+			fqdn := cCtx.Args().First()
+			if fqdn == "" {
+				fqdn = pubIP
 			}
 			var ipAdd string
 			var err error
 			var quiet = cCtx.Bool("quiet")
 
-			switch domain {
-			case "pubIp":
+			switch fqdn {
+			case pubIP:
 				ipAdd, err = net.GetMyPub()
 			default:
-				ipAdd, err = net.Resolve(domain)
+				ipAdd, err = net.Resolve(fqdn)
 			}
 
 			if err != nil {
+				slog.Error("IP retrieval failed", "fqdn", fqdn, "error", err)
 				return err
 			}
 			if quiet {
 				fmt.Printf("%s", ipAdd)
 			} else {
-				fmt.Printf("%s --> %s\n", domain, ipAdd)
+				fmt.Printf("%s: %s\n", fqdn, ipAdd)
 			}
 			return nil
 		},

@@ -74,7 +74,13 @@ func newSetCommand() *cli.Command {
 
 			// cflare is the only backend right now
 			var ddns ddns.Recorder = cflare.New()
-			return updateFQDN(ddns, token, fqdn, ipAdd)
+			if err = updateFQDN(ddns, token, fqdn, ipAdd); err != nil {
+				slog.Error("FQDN update failed", "fqdn", fqdn, "ip", ipAdd, "error", err)
+				return err
+			}
+
+			slog.Info("FQDN updated successfully", "fqdn", fqdn, "ip", ipAdd)
+			return nil
 		},
 	}
 
