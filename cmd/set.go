@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/fgiudici/ddflare/pkg/cflare"
@@ -33,6 +34,12 @@ func newSetCommand() *cli.Command {
 		Args:      true,
 		ArgsUsage: "fqdn",
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "check",
+				Aliases: []string{"c"},
+				Usage:   "check if the record needs actual update before writing",
+				Value:   false,
+			},
 			&cli.StringFlag{
 				Name:    "ip",
 				Aliases: []string{"i"},
@@ -51,10 +58,8 @@ func newSetCommand() *cli.Command {
 			fqdn := cCtx.Args().First()
 			ipAdd := cCtx.String("ip")
 			token := cCtx.String("token")
-			var (
-				err      error
-				zoneName string
-			)
+			check := cCtx.Bool("check")
+			var err error
 
 			if ipAdd == "" {
 				if ipAdd, err = net.GetMyPub(); err != nil {
@@ -62,25 +67,48 @@ func newSetCommand() *cli.Command {
 				}
 			}
 
-			if zoneName, err = getZone(fqdn); err != nil {
-				return err
+			if check && isFQDNUpToDate(fqdn, ipAdd) {
+				slog.Info("FQDN is up to date", "fqdn", fqdn, "ip", ipAdd)
+				return nil
 			}
 
 			// cflare is the only backend right now
 			var ddns ddns.Recorder = cflare.New()
-
-			if err := ddns.Init(token); err != nil {
-				return err
-			}
-
-			if err := ddns.Write(fqdn, zoneName, ipAdd); err != nil {
-				return err
-			}
-			return nil
+			return updateFQDN(ddns, token, fqdn, ipAdd)
 		},
 	}
 
 	return cmd
+}
+
+func isFQDNUpToDate(fqdn, ipAdd string) bool {
+	var (
+		resIp string
+		err   error
+	)
+	if resIp, err = net.Resolve(fqdn); err != nil {
+		slog.Error(err.Error())
+		return false
+	}
+	return ipAdd == resIp
+}
+
+func updateFQDN(ddns ddns.Recorder, token, fqdn, ip string) error {
+	var (
+		err      error
+		zoneName string
+	)
+
+	if err = ddns.Init(token); err != nil {
+		return fmt.Errorf("cannot initialize DDNS backend: %w", err)
+	}
+	if zoneName, err = getZone(fqdn); err != nil {
+		return fmt.Errorf("cannot extract fqdn zone: %w", err)
+	}
+	if err = ddns.Write(fqdn, zoneName, ip); err != nil {
+		return fmt.Errorf("cannot update fqdn record: %w", err)
+	}
+	return nil
 }
 
 func getZone(fqdn string) (string, error) {
