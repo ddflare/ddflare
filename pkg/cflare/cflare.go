@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 
 	cf "github.com/cloudflare/cloudflare-go"
 	"github.com/fgiudici/ddflare/pkg/ddns"
@@ -59,8 +60,8 @@ func (c *Cloudflare) Write(record, zone, ip string) error {
 	if err != nil {
 		return err
 	}
-	for _, d := range dnsRecs {
-		log.Printf("%+v\n", d)
+	for i, d := range dnsRecs {
+		slog.Debug("record found", "id", i, "data", d)
 	}
 	if len(dnsRecs) > 1 {
 		return fmt.Errorf("found %d matching records", len(dnsRecs))
@@ -80,7 +81,7 @@ func (c *Cloudflare) Write(record, zone, ip string) error {
 	if rec, err = c.api.UpdateDNSRecord(ctx, cf.ZoneIdentifier(zoneID), updateRec); err != nil {
 		return err
 	}
-	log.Printf("record updated:\n%+v\n", rec)
+	slog.Debug("record updated", "data", rec)
 
 	return nil
 }
