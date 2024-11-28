@@ -19,14 +19,15 @@ package cflare
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
+	"strings"
 
 	cf "github.com/cloudflare/cloudflare-go"
-	"github.com/fgiudici/ddflare/pkg/ddns"
+	"github.com/fgiudici/ddflare/pkg/ddman"
+	"github.com/fgiudici/ddflare/pkg/net"
 )
 
-var _ ddns.Recorder = (*Cloudflare)(nil)
+var _ ddman.DNSManager = (*Cloudflare)(nil)
 
 type Cloudflare struct {
 	api *cf.API
@@ -36,6 +37,14 @@ func New() *Cloudflare {
 	return &Cloudflare{}
 }
 
+func (c *Cloudflare) Add(fqdn string) error {
+	return fmt.Errorf("not implemented yet")
+}
+
+func (c *Cloudflare) Del(fqdn string) error {
+	return fmt.Errorf("not implemented yet")
+}
+
 func (c *Cloudflare) Init(token string) error {
 	var err error
 	// Never returns error when no options are passed (like in this case)
@@ -43,27 +52,40 @@ func (c *Cloudflare) Init(token string) error {
 	return err
 }
 
-func (c *Cloudflare) Write(record, zone, ip string) error {
+func (c *Cloudflare) Resolve(fqdn string) (string, error) {
+	return net.Resolve(fqdn)
+}
+
+func (c *Cloudflare) Update(fqdn, ip string) error {
 	if c.api == nil {
 		return fmt.Errorf("not authorized")
 	}
 
+	var err error
 	ctx := context.Background()
+	log := slog.Default().With("fqdn", fqdn)
+	zone := ""
+
+	if zone, err = getZone(fqdn); err != nil {
+		return fmt.Errorf("cannot identify DNS zone: %w", err)
+	}
 
 	zoneID, err := c.api.ZoneIDByName(zone)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot retrieve DNS zone id: %w", err)
 	}
-	log.Printf("Zone ID: %s", zoneID)
+
+	log.Debug("DNS zone found", "zone", zone, "zoneID", zoneID)
+
 	dnsRecs, _, err := c.api.ListDNSRecords(ctx, cf.ZoneIdentifier(zoneID),
-		cf.ListDNSRecordsParams{Name: record})
+		cf.ListDNSRecordsParams{Name: fqdn})
 	if err != nil {
 		return err
 	}
-	for i, d := range dnsRecs {
-		slog.Debug("record found", "id", i, "data", d)
+	for _, d := range dnsRecs {
+		log.Debug("record found", "data", d)
 	}
-	if len(dnsRecs) > 1 {
+	if len(dnsRecs) != 1 {
 		return fmt.Errorf("found %d matching records", len(dnsRecs))
 	}
 	rec := dnsRecs[0]
@@ -81,7 +103,16 @@ func (c *Cloudflare) Write(record, zone, ip string) error {
 	if rec, err = c.api.UpdateDNSRecord(ctx, cf.ZoneIdentifier(zoneID), updateRec); err != nil {
 		return err
 	}
-	slog.Debug("record updated", "data", rec)
+	log.Debug("record updated", "data", rec)
 
 	return nil
+}
+
+func getZone(fqdn string) (string, error) {
+	domain := strings.Split(fqdn, ".")
+	if len(domain) < 2 {
+		return "", fmt.Errorf("%q is not a valid dns name", fqdn)
+	}
+	zone := domain[len(domain)-2] + "." + domain[len(domain)-1]
+	return zone, nil
 }
