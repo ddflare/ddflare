@@ -17,12 +17,10 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/fgiudici/ddflare/pkg/cflare"
-	"github.com/fgiudici/ddflare/pkg/ddns"
+	"github.com/fgiudici/ddflare/pkg/ddman"
 	"github.com/fgiudici/ddflare/pkg/net"
 	"github.com/urfave/cli/v2"
 )
@@ -67,14 +65,19 @@ func newSetCommand() *cli.Command {
 				}
 			}
 
-			if check && isFQDNUpToDate(fqdn, ipAdd) {
+			// cflare is the only backend right now
+			var ddns ddman.DNSManager = cflare.New()
+			if err = ddns.Init(token); err != nil {
+				slog.Error("DNS Manager initialization failed", "error", err)
+				return err
+			}
+
+			if check && isFQDNUpToDate(ddns, fqdn, ipAdd) {
 				slog.Info("FQDN is up to date", "fqdn", fqdn, "ip", ipAdd)
 				return nil
 			}
 
-			// cflare is the only backend right now
-			var ddns ddns.Recorder = cflare.New()
-			if err = updateFQDN(ddns, token, fqdn, ipAdd); err != nil {
+			if err = ddns.Update(fqdn, ipAdd); err != nil {
 				slog.Error("FQDN update failed", "fqdn", fqdn, "ip", ipAdd, "error", err)
 				return err
 			}
@@ -87,41 +90,14 @@ func newSetCommand() *cli.Command {
 	return cmd
 }
 
-func isFQDNUpToDate(fqdn, ipAdd string) bool {
+func isFQDNUpToDate(ddns ddman.DNSManager, fqdn, ipAdd string) bool {
 	var (
 		resIp string
 		err   error
 	)
-	if resIp, err = net.Resolve(fqdn); err != nil {
+	if resIp, err = ddns.Resolve(fqdn); err != nil {
 		slog.Error(err.Error())
 		return false
 	}
 	return ipAdd == resIp
-}
-
-func updateFQDN(ddns ddns.Recorder, token, fqdn, ip string) error {
-	var (
-		err      error
-		zoneName string
-	)
-
-	if err = ddns.Init(token); err != nil {
-		return fmt.Errorf("cannot initialize DDNS backend: %w", err)
-	}
-	if zoneName, err = getZone(fqdn); err != nil {
-		return fmt.Errorf("cannot extract fqdn zone: %w", err)
-	}
-	if err = ddns.Write(fqdn, zoneName, ip); err != nil {
-		return fmt.Errorf("cannot update fqdn record: %w", err)
-	}
-	return nil
-}
-
-func getZone(fqdn string) (string, error) {
-	domain := strings.Split(fqdn, ".")
-	if len(domain) < 2 {
-		return "", fmt.Errorf("%q is not a valid dns name", fqdn)
-	}
-	zone := domain[len(domain)-2] + "." + domain[len(domain)-1]
-	return zone, nil
 }
