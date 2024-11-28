@@ -14,14 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ddns
+package ddman
 
-type Record struct {
-	ZoneName string
-	Name     string
-}
-
-type Recorder interface {
-	Init(token string) error
-	Write(record, zone, ip string) error
+type DNSManager interface {
+	Add(fqdn string) error
+	Del(fqdn string) error
+	Init(auth string) error
+	Resolve(fqdn string) (string, error)
+	Update(fqdn, ip string) error
 }
