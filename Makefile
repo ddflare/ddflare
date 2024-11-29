@@ -2,7 +2,7 @@ GIT_COMMIT?=$(shell git rev-parse --short HEAD)
 GIT_VERSION?=$(shell git describe --tags 2>/dev/null || echo "v0.0.0-"$(GIT_COMMIT))
 IMG_REG?=ghcr.io
 IMG_REPO?=fgiudici/ddflare
-IMG_TAG?=$(GIT_VERSION)
+IMG_TAG?=$(GIT_VERSION:v%=%)
 
 export ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUILD_DIR   := bin
