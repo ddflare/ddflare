@@ -38,7 +38,7 @@ func Execute() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "loglevel",
-				Aliases: []string{"l"},
+				Aliases: []string{"log"},
 				Usage: "set the log level [" + strings.Join([]string{
 					slog.LevelDebug.String(),
 					slog.LevelInfo.String(),
@@ -48,9 +48,20 @@ func Execute() {
 				EnvVars: []string{"LOGLEVEL"},
 				Value:   slog.LevelInfo.String(),
 			},
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "verbose output (shorthand for '--log DEBUG')",
+				Value:   false,
+			},
 		},
 		Before: func(cCtx *cli.Context) error {
 			loglevel := cCtx.String("loglevel")
+			verbose := cCtx.Bool("verbose")
+			if verbose {
+				loglevel = slog.LevelDebug.String()
+			}
+
 			var slogLvl slog.Level
 			switch loglevel {
 			case slog.LevelDebug.String():
