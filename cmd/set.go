@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/fgiudici/ddflare/pkg/cflare"
 	"github.com/fgiudici/ddflare/pkg/ddman"
@@ -32,37 +33,61 @@ func newSetCommand() *cli.Command {
 		Args:      true,
 		ArgsUsage: "fqdn",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "address",
+				Aliases: []string{"a"},
+				Usage:   "IP address to set (current public address if not specified)",
+				EnvVars: []string{"IPADDR"},
+			},
+			&cli.StringFlag{
+				Name:     "api-token",
+				Aliases:  []string{"t"},
+				Usage:    "API authentication token",
+				EnvVars:  []string{"TOKEN"},
+				Required: true,
+			},
 			&cli.BoolFlag{
 				Name:    "check",
 				Aliases: []string{"c"},
 				Usage:   "check if the record needs actual update before writing",
 				Value:   false,
 			},
-			&cli.StringFlag{
-				Name:    "ip",
+			&cli.DurationFlag{
+				Name:    "interval",
 				Aliases: []string{"i"},
-				Usage:   "ip address (current public IP if not specified)",
-				EnvVars: []string{"IPADDRESS"},
+				Usage:   "interval to wait between consecutive checks (implies --check)",
+				EnvVars: []string{"INTERVAL"},
 			},
-			&cli.StringFlag{
-				Name:     "token",
-				Aliases:  []string{"t"},
-				Usage:    "token",
-				EnvVars:  []string{"TOKEN"},
-				Required: true,
+			&cli.BoolFlag{
+				Name:    "loop",
+				Aliases: []string{"l"},
+				Usage:   "shorthand for --check --interval 5m",
+				Value:   false,
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
 			fqdn := cCtx.Args().First()
-			ipAdd := cCtx.String("ip")
-			token := cCtx.String("token")
+			ipAdd := cCtx.String("address")
 			check := cCtx.Bool("check")
+			interval := cCtx.Duration("interval")
+			loop := cCtx.Bool("loop")
+			token := cCtx.String("api-token")
 			var err error
 
 			if ipAdd == "" {
 				if ipAdd, err = net.GetMyPub(); err != nil {
 					return err
 				}
+			}
+
+			if loop {
+				if interval == time.Duration(0) {
+					interval = 5 * time.Minute
+				}
+			}
+
+			if interval > time.Duration(0) {
+				check = true
 			}
 
 			// cflare is the only backend right now
@@ -72,22 +97,35 @@ func newSetCommand() *cli.Command {
 				return err
 			}
 
-			if check && isFQDNUpToDate(ddns, fqdn, ipAdd) {
-				slog.Info("FQDN is up to date", "fqdn", fqdn, "ip", ipAdd)
-				return nil
-			}
+			for {
+				if err = updateFQDN(ddns, fqdn, ipAdd, check); err != nil {
+					slog.Error("FQDN update failed", "fqdn", fqdn, "ip", ipAdd, "error", err)
+				} else {
+					slog.Info("FQDN update successful", "fqdn", fqdn, "ip", ipAdd)
+				}
 
-			if err = ddns.Update(fqdn, ipAdd); err != nil {
-				slog.Error("FQDN update failed", "fqdn", fqdn, "ip", ipAdd, "error", err)
-				return err
+				if interval == 0 {
+					return err
+				}
+				time.Sleep(interval)
 			}
-
-			slog.Info("FQDN updated successfully", "fqdn", fqdn, "ip", ipAdd)
-			return nil
 		},
 	}
 
 	return cmd
+}
+
+func updateFQDN(ddns ddman.DNSManager, fqdn, ipAdd string, check bool) error {
+	if check && isFQDNUpToDate(ddns, fqdn, ipAdd) {
+		slog.Debug("FQDN is up to date", "fqdn", fqdn, "ip", ipAdd)
+		return nil
+	}
+
+	if err := ddns.Update(fqdn, ipAdd); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func isFQDNUpToDate(ddns ddman.DNSManager, fqdn, ipAdd string) bool {
@@ -99,5 +137,9 @@ func isFQDNUpToDate(ddns ddman.DNSManager, fqdn, ipAdd string) bool {
 		slog.Error(err.Error())
 		return false
 	}
-	return ipAdd == resIp
+	if ipAdd != resIp {
+		slog.Debug("FQDN requires update", "fqdn", fqdn, "ip", resIp)
+		return false
+	}
+	return true
 }
