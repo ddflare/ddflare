@@ -36,35 +36,35 @@ release-all: release-linux-amd64 release-linux-arm64 \
 
 .PHONY: release-linux-amd64
 release-linux-amd64:
-	$(call cross_compile,"linux","amd64", "")
+	$(call cross_compile,"linux","amd64","","")
 
 .PHONY: release-linux-arm64
 release-linux-arm64:
-	$(call cross_compile,"linux","arm64", "")
+	$(call cross_compile,"linux","arm64","","")
 
 .PHONY: release-linux-armv6
 release-linux-armv6:
-	$(call cross_compile,"linux","arm", "6")
+	$(call cross_compile,"linux","arm","6","-v6")
 
 .PHONY: release-linux-armv7
 release-linux-armv7:
-	$(call cross_compile,"linux","arm", "7,hardfloat")
+	$(call cross_compile,"linux","arm","7","-v7")
 
 .PHONY: release-darwin-amd64
 release-darwin-amd64:
-	$(call cross_compile,"darwin","amd64")
+	$(call cross_compile,"darwin","amd64","","")
 
 .PHONY: release-darwin-arm64
 release-darwin-arm64:
-	$(call cross_compile,"darwin","arm64")
+	$(call cross_compile,"darwin","arm64","","")
 
 .PHONY: release-windows-amd64
 release-windows-amd64:
-	$(call cross_compile,"windows","amd64")
+	$(call cross_compile,"windows","amd64","","")
 
 .PHONY: release-windows-arm64
 release-windows-arm64:
-	$(call cross_compile,"windows","arm64")
+	$(call cross_compile,"windows","arm64","","")
 
 
 .PHONY: docker
@@ -84,8 +84,10 @@ define cross_compile
 	$(eval $@_GOOS = $(1))
 	$(eval $@_GOARCH = $(2))
 	$(eval $@_GOARM = $(3))
+	$(eval $@_SUFFIX = $(4))
+
 	env GOOS=${$@_GOOS} GOARCH=${$@_GOARCH} GOARM=${$@_GOARM} CGO_ENABLED=0 go build \
-		-ldflags '$(LDFLAGS)' -o ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}
-	shasum -a 256 ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH} \
-		> ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}.sha256
+		-ldflags '$(LDFLAGS)' -o ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX}
+	shasum -a 256 ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX} \
+		> ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX}.sha256
 endef
