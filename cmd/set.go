@@ -17,11 +17,13 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"log/slog"
 	"time"
 
 	"github.com/fgiudici/ddflare/pkg/cflare"
 	"github.com/fgiudici/ddflare/pkg/ddman"
+	"github.com/fgiudici/ddflare/pkg/dyndns"
 	"github.com/fgiudici/ddflare/pkg/net"
 	"github.com/urfave/cli/v2"
 )
@@ -40,11 +42,10 @@ func newSetCommand() *cli.Command {
 				EnvVars: []string{"IPADDR"},
 			},
 			&cli.StringFlag{
-				Name:     "api-token",
-				Aliases:  []string{"t"},
-				Usage:    "API authentication token",
-				EnvVars:  []string{"TOKEN"},
-				Required: true,
+				Name:    "api-token",
+				Aliases: []string{"t"},
+				Usage:   "API authentication token",
+				EnvVars: []string{"TOKEN"},
 			},
 			&cli.BoolFlag{
 				Name:    "check",
@@ -55,7 +56,7 @@ func newSetCommand() *cli.Command {
 			&cli.DurationFlag{
 				Name:    "interval",
 				Aliases: []string{"i"},
-				Usage:   "interval to wait between consecutive checks (implies --check)",
+				Usage:   "interval between consecutive checks (implies --check)",
 				EnvVars: []string{"INTERVAL"},
 			},
 			&cli.BoolFlag{
@@ -64,50 +65,59 @@ func newSetCommand() *cli.Command {
 				Usage:   "shorthand for --check --interval 5m",
 				Value:   false,
 			},
+			&cli.StringFlag{
+				Name:    "svc",
+				Aliases: []string{"s"},
+				Usage:   "DDNS service provider [cflare, noip, $URL]",
+				EnvVars: []string{"SVC"},
+				Value:   "cflare",
+			},
+			&cli.StringFlag{
+				Name:    "user",
+				Aliases: []string{"u"},
+				Usage:   "username (alternative to the 'api-token')",
+				EnvVars: []string{"USER"},
+			},
+			&cli.StringFlag{
+				Name:    "password",
+				Aliases: []string{"p"},
+				Usage:   "password (alternative to the 'api-token')",
+				EnvVars: []string{"PASSWD", "PASSWORD"},
+			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			fqdn := cCtx.Args().First()
-			ipAdd := cCtx.String("address")
-			check := cCtx.Bool("check")
-			interval := cCtx.Duration("interval")
-			loop := cCtx.Bool("loop")
-			token := cCtx.String("api-token")
-			var err error
-
-			if ipAdd == "" {
-				if ipAdd, err = net.GetMyPub(); err != nil {
-					return err
-				}
+			var (
+				conf *setConf
+				err  error
+			)
+			if conf, err = newSetConf(cCtx); err != nil {
+				cli.ShowSubcommandHelp(cCtx)
+				return err
 			}
 
-			if loop {
-				if interval == time.Duration(0) {
-					interval = 5 * time.Minute
-				}
+			var ddns ddman.DNSManager
+			if conf.svc == "cflare" {
+				ddns = cflare.New()
+			} else {
+				ddns = dyndns.New(conf.svc)
 			}
 
-			if interval > time.Duration(0) {
-				check = true
-			}
-
-			// cflare is the only backend right now
-			var ddns ddman.DNSManager = cflare.New()
-			if err = ddns.Init(token); err != nil {
+			if err = ddns.Init(conf.token); err != nil {
 				slog.Error("DNS Manager initialization failed", "error", err)
 				return err
 			}
 
 			for {
-				if err = updateFQDN(ddns, fqdn, ipAdd, check); err != nil {
-					slog.Error("FQDN update failed", "fqdn", fqdn, "ip", ipAdd, "error", err)
+				if err = updateFQDN(ddns, conf); err != nil {
+					slog.Error("FQDN update failed", "fqdn", conf.fqdn, "ip", conf.address, "error", err)
 				} else {
-					slog.Info("FQDN update successful", "fqdn", fqdn, "ip", ipAdd)
+					slog.Info("FQDN update successful", "fqdn", conf.fqdn, "ip", conf.address)
 				}
 
-				if interval == 0 {
+				if conf.interval == 0 {
 					return err
 				}
-				time.Sleep(interval)
+				time.Sleep(conf.interval)
 			}
 		},
 	}
@@ -115,13 +125,68 @@ func newSetCommand() *cli.Command {
 	return cmd
 }
 
-func updateFQDN(ddns ddman.DNSManager, fqdn, ipAdd string, check bool) error {
-	if check && isFQDNUpToDate(ddns, fqdn, ipAdd) {
-		slog.Debug("FQDN is up to date", "fqdn", fqdn, "ip", ipAdd)
+type setConf struct {
+	fqdn     string
+	address  string
+	token    string
+	check    bool
+	interval time.Duration
+	loop     bool
+	svc      string
+}
+
+func newSetConf(cCtx *cli.Context) (*setConf, error) {
+	conf := &setConf{}
+
+	conf.fqdn = cCtx.Args().First()
+	if conf.fqdn == "" {
+		return nil, errors.New("'fqdn' arg is missing")
+	}
+
+	conf.token = cCtx.String("api-token")
+	if conf.token == "" {
+		user := cCtx.String("user")
+		passwd := cCtx.String("password")
+		if user == "" || passwd == "" {
+			return nil, errors.New("auth credential missing ('api-token' or 'user' + 'password')")
+		}
+		conf.token = user + ":" + passwd
+	}
+
+	conf.address = cCtx.String("address")
+	if conf.address == "" {
+		var err error
+		if conf.address, err = net.GetMyPub(); err != nil {
+			return nil, err
+		}
+	}
+	conf.check = cCtx.Bool("check")
+	conf.interval = cCtx.Duration("interval")
+	conf.loop = cCtx.Bool("loop")
+	if conf.loop && conf.interval == time.Duration(0) {
+		conf.interval = 5 * time.Minute
+	}
+	if conf.interval > time.Duration(0) {
+		conf.check = true
+	}
+
+	conf.svc = cCtx.String("svc")
+	switch conf.svc {
+	case "noip":
+		conf.svc = "https://dynupdate.no-ip.com"
+	case "ddns":
+		conf.svc = "https://update.ddns.org"
+	}
+	return conf, nil
+}
+
+func updateFQDN(ddns ddman.DNSManager, conf *setConf) error {
+	if conf.check && isFQDNUpToDate(ddns, conf.fqdn, conf.address) {
+		slog.Debug("FQDN is up to date", "fqdn", conf.fqdn, "ip", conf.address)
 		return nil
 	}
 
-	if err := ddns.Update(fqdn, ipAdd); err != nil {
+	if err := ddns.Update(conf.fqdn, conf.address); err != nil {
 		return err
 	}
 
