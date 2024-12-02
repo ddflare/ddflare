@@ -110,12 +110,12 @@ func newSetCommand() *cli.Command {
 			for {
 				if err = updateFQDN(ddns, conf); err != nil {
 					slog.Error("FQDN update failed", "fqdn", conf.fqdn, "ip", conf.address, "error", err)
-				} else {
-					slog.Info("FQDN update successful", "fqdn", conf.fqdn, "ip", conf.address)
+					return err
 				}
+				slog.Info("FQDN update successful", "fqdn", conf.fqdn, "ip", conf.address)
 
 				if conf.interval == 0 {
-					return err
+					return nil
 				}
 				time.Sleep(conf.interval)
 			}
