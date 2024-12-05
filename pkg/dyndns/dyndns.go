@@ -25,9 +25,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/fgiudici/ddflare/pkg/ddman"
 	"github.com/fgiudici/ddflare/pkg/net"
 	"github.com/fgiudici/ddflare/pkg/version"
 )
+
+var _ ddman.DNSManager = (*DynDNS)(nil)
 
 type DynDNS struct {
 	endpoint  string
