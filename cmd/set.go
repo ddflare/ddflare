@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -135,13 +136,14 @@ func newSetCommand() *cli.Command {
 }
 
 type setConf struct {
-	fqdn     string
-	address  string
-	token    string
-	check    bool
-	interval time.Duration
-	loop     bool
-	svc      string
+	fqdn           string
+	address        string
+	token          string
+	check          bool
+	interval       time.Duration
+	loop           bool
+	svc            string
+	lastSetAddress string
 }
 
 func newSetConf(cCtx *cli.Context) (*setConf, error) {
@@ -190,15 +192,28 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 }
 
 func updateFQDN(ddns ddman.DNSManager, conf *setConf) error {
-	if conf.check && isFQDNUpToDate(ddns, conf.fqdn, conf.address) {
-		slog.Debug("FQDN is up to date", "fqdn", conf.fqdn, "ip", conf.address)
-		return nil
+	address := conf.address
+	if address == "" {
+		var err error
+		if address, err = net.GetMyPub(); err != nil {
+			return fmt.Errorf("cannot retrieve public address: %w", err)
+		}
+		slog.Debug("Got public IP", "address", address)
+	}
+	if conf.check {
+		if address == conf.lastSetAddress {
+			return nil
+		}
+		conf.lastSetAddress = address
+		if isFQDNUpToDate(ddns, conf.fqdn, address) {
+			slog.Debug("FQDN is up to date", "fqdn", conf.fqdn, "ip", conf.address)
+			return nil
+		}
 	}
 
-	if err := ddns.Update(conf.fqdn, conf.address); err != nil {
+	if err := ddns.Update(conf.fqdn, address); err != nil {
 		return err
 	}
-
 	return nil
 }
 
