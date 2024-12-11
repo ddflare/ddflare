@@ -28,6 +28,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	IPADDR   = "DDFLARE_IP_ADDRESS"
+	TOKEN    = "DDFLARE_API_TOKEN"
+	INTERVAL = "DDFLARE_CHECK_INTERVAL"
+	SVC      = "DDFLARE_SERVICE_PROVIDER"
+	USER     = "DDFLARE_USER"
+	PASSWD   = "DDFLARE_PASSWORD"
+)
+
 func newSetCommand() *cli.Command {
 	cmd := &cli.Command{
 		Name:      "set",
@@ -39,13 +48,13 @@ func newSetCommand() *cli.Command {
 				Name:    "address",
 				Aliases: []string{"a"},
 				Usage:   "IP address to set (current public address if not specified)",
-				EnvVars: []string{"IPADDR"},
+				EnvVars: []string{IPADDR},
 			},
 			&cli.StringFlag{
 				Name:    "api-token",
 				Aliases: []string{"t"},
 				Usage:   "API authentication token",
-				EnvVars: []string{"TOKEN"},
+				EnvVars: []string{TOKEN},
 			},
 			&cli.BoolFlag{
 				Name:    "check",
@@ -57,7 +66,7 @@ func newSetCommand() *cli.Command {
 				Name:    "interval",
 				Aliases: []string{"i"},
 				Usage:   "interval between consecutive checks (implies --check)",
-				EnvVars: []string{"INTERVAL"},
+				EnvVars: []string{INTERVAL},
 			},
 			&cli.BoolFlag{
 				Name:    "loop",
@@ -69,20 +78,20 @@ func newSetCommand() *cli.Command {
 				Name:    "svc",
 				Aliases: []string{"s"},
 				Usage:   "DDNS service provider [cflare, noip, $URL]",
-				EnvVars: []string{"SVC"},
+				EnvVars: []string{SVC},
 				Value:   "cflare",
 			},
 			&cli.StringFlag{
 				Name:    "user",
 				Aliases: []string{"u"},
 				Usage:   "username (alternative to the 'api-token')",
-				EnvVars: []string{"USER"},
+				EnvVars: []string{USER},
 			},
 			&cli.StringFlag{
 				Name:    "password",
 				Aliases: []string{"p"},
 				Usage:   "password (alternative to the 'api-token')",
-				EnvVars: []string{"PASSWD", "PASSWORD"},
+				EnvVars: []string{PASSWD},
 			},
 		},
 		Action: func(cCtx *cli.Context) error {

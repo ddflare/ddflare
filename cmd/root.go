@@ -26,6 +26,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	LOGLEVEL = "DDFLARE_LOGLEVEL"
+)
+
 // This is called by main.main().
 func Execute() {
 	app := &cli.App{
@@ -45,7 +49,7 @@ func Execute() {
 					slog.LevelWarn.String(),
 					slog.LevelError.String(),
 				}, ",") + "]",
-				EnvVars: []string{"LOGLEVEL"},
+				EnvVars: []string{LOGLEVEL},
 				Value:   slog.LevelInfo.String(),
 			},
 			&cli.BoolFlag{
