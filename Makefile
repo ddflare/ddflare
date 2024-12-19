@@ -17,8 +17,11 @@ GOOS   := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
 .PHONY: build
-build:
-	CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o $(BUILD_DIR)/ddflare
+build: build-cli
+
+.PHONY: build-cli
+build-cli:
+	CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o $(BUILD_DIR)/ddflare  $(ROOT_DIR)/cli
 
 .PHONY: clean
 clean:
@@ -87,7 +90,7 @@ define cross_compile
 	$(eval $@_SUFFIX = $(4))
 
 	env GOOS=${$@_GOOS} GOARCH=${$@_GOARCH} GOARM=${$@_GOARM} CGO_ENABLED=0 go build \
-		-ldflags '$(LDFLAGS)' -o ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX}
+		-ldflags '$(LDFLAGS)' -o ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX} ${ROOT_DIR}/cli
 	shasum -a 256 ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX} \
 		> ${RELEASE_DIR}/ddflare-${$@_GOOS}-${$@_GOARCH}${$@_SUFFIX}.sha256
 endef
