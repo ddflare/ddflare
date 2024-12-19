@@ -19,7 +19,9 @@ package ddman
 type DNSManager interface {
 	Add(fqdn string) error
 	Del(fqdn string) error
+	GetApiEndpoint() string
 	Init(auth string) error
 	Resolve(fqdn string) (string, error)
+	SetApiEndpoint(ep string)
 	Update(fqdn, ip string) error
 }

@@ -51,6 +51,10 @@ func (d *DynDNS) Del(fqdn string) error {
 	return fmt.Errorf("not supported")
 }
 
+func (d *DynDNS) GetApiEndpoint() string {
+	return d.endpoint
+}
+
 // Init expects a '$username:$password' token which once encoded base64
 // could be used as authentication token for the DynDNS update protocol
 // (to be passed in the Authorization Header of the HTTP GET request).
@@ -62,6 +66,10 @@ func (d *DynDNS) Init(token string) error {
 
 func (d *DynDNS) Resolve(fqdn string) (string, error) {
 	return net.Resolve(fqdn)
+}
+
+func (d *DynDNS) SetApiEndpoint(ep string) {
+	d.endpoint = ep
 }
 
 func (d *DynDNS) Update(fqdn, ip string) error {
