@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "github.com/fgiudici/ddflare/cmd"
+import "github.com/fgiudici/ddflare/cli/cmd"
 
 func main() {
 	cmd.Execute()
