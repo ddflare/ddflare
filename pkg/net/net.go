@@ -37,10 +37,10 @@ func GetMyPub() (string, error) {
 	return string(ip), nil
 }
 
-func Resolve(domain string) (string, error) {
-	addr, err := net.LookupHost(domain)
+func Resolve(fqdn string) (string, error) {
+	addr, err := net.LookupHost(fqdn)
 	if err != nil {
-		return "", fmt.Errorf("cannot resolve %q: %w", domain, err)
+		return "", fmt.Errorf("cannot resolve %q: %w", fqdn, err)
 	}
 
 	// Returns the first address only
