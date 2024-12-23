@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package ddflare exposes functions to manage DDNS (Dynamic DNS) updates.
 package ddflare
 
 import (
@@ -25,6 +26,7 @@ import (
 	"github.com/fgiudici/ddflare/pkg/net"
 )
 
+// DNSManagerType identifies the service type used for DDNS updates.
 type DNSManagerType int
 
 const (
@@ -33,11 +35,15 @@ const (
 	NoIP
 )
 
+// DNSManager represents a DDNS service instance and exposes the methods
+// to read and update the managed DNS records.
 type DNSManager struct {
 	ddman.DNSManager
 	lastSetAddresses map[string]string
 }
 
+// GetPublicIP returns the current Public IP address by querying the
+// "api.ipify.org" service.
 func GetPublicIP() (string, error) {
 	var (
 		ip  string
@@ -49,6 +55,12 @@ func GetPublicIP() (string, error) {
 	}
 
 	return ip, nil
+}
+
+// Resolve returns the IP address of the FQDN passed as argument using the
+// local resolver.
+func Resolve(fqdn string) (string, error) {
+	return net.Resolve(fqdn)
 }
 
 // NewDNSManager() returns a new DNSManager of the give DNSManagerType.
