@@ -63,11 +63,11 @@ release-darwin-arm64:
 
 .PHONY: release-windows-amd64
 release-windows-amd64:
-	$(call cross_compile,"windows","amd64","","")
+	$(call cross_compile,"windows","amd64","",".exe")
 
 .PHONY: release-windows-arm64
 release-windows-arm64:
-	$(call cross_compile,"windows","arm64","","")
+	$(call cross_compile,"windows","arm64","",".exe")
 
 
 .PHONY: docker
