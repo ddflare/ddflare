@@ -17,11 +17,13 @@ limitations under the License.
 package ddman
 
 type DNSManager interface {
+	GetApiEndpoint() string
+	SetApiEndpoint(ep string)
+	GetUserAgent() string
+	SetUserAgent(ua string)
+	Init(auth string) error
 	Add(fqdn string) error
 	Del(fqdn string) error
-	GetApiEndpoint() string
-	Init(auth string) error
 	Resolve(fqdn string) (string, error)
-	SetApiEndpoint(ep string)
 	Update(fqdn, ip string) error
 }

@@ -49,6 +49,18 @@ func (c *Cloudflare) GetApiEndpoint() string {
 	return c.api.BaseURL
 }
 
+func (c *Cloudflare) SetApiEndpoint(ep string) {
+	c.api.BaseURL = ep
+}
+
+func (c *Cloudflare) GetUserAgent() string {
+	return c.api.UserAgent
+}
+
+func (c *Cloudflare) SetUserAgent(ua string) {
+	c.api.UserAgent = ua
+}
+
 func (c *Cloudflare) Init(token string) error {
 	var err error
 	// Never returns error when no options are passed (like in this case)
@@ -58,10 +70,6 @@ func (c *Cloudflare) Init(token string) error {
 
 func (c *Cloudflare) Resolve(fqdn string) (string, error) {
 	return net.Resolve(fqdn)
-}
-
-func (c *Cloudflare) SetApiEndpoint(ep string) {
-	c.api.BaseURL = ep
 }
 
 func (c *Cloudflare) Update(fqdn, ip string) error {
