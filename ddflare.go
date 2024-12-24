@@ -22,7 +22,7 @@ import (
 
 	"github.com/fgiudici/ddflare/pkg/cflare"
 	"github.com/fgiudici/ddflare/pkg/ddman"
-	"github.com/fgiudici/ddflare/pkg/dyndns"
+	"github.com/fgiudici/ddflare/pkg/dyn"
 	"github.com/fgiudici/ddflare/pkg/net"
 )
 
@@ -31,6 +31,7 @@ type DNSManagerType int
 
 const (
 	Cloudflare = iota
+	Dyn
 	DDNS
 	NoIP
 )
@@ -72,10 +73,12 @@ func NewDNSManager(dt DNSManagerType) (*DNSManager, error) {
 	switch dt {
 	case Cloudflare:
 		dm.DNSManager = cflare.New()
+	case Dyn:
+		dm.DNSManager = dyn.New()
 	case DDNS:
-		dm.DNSManager = dyndns.New("https://update.ddns.org")
+		dm.DNSManager = dyn.NewWithEndpoint("https://update.ddns.org")
 	case NoIP:
-		dm.DNSManager = dyndns.New("https://dynupdate.no-ip.com")
+		dm.DNSManager = dyn.NewWithEndpoint("https://dynupdate.no-ip.com")
 	default:
 		return nil, fmt.Errorf("invalid DNS manager backend (%d)", dt)
 	}
