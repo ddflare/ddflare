@@ -69,7 +69,7 @@ func newSetCommand() *cli.Command {
 			&cli.StringFlag{
 				Name:    "svc",
 				Aliases: []string{"s"},
-				Usage:   "DDNS service provider [cflare, noip, ddns, $URL]",
+				Usage:   "DDNS service provider [cflare, dyn, noip, ddns, $URL]",
 				EnvVars: []string{SVC},
 				Value:   "cflare",
 			},
@@ -142,6 +142,8 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 	switch svc {
 	case "cflare":
 		conf.dm, _ = ddflare.NewDNSManager(ddflare.Cloudflare)
+	case "dyn":
+		conf.dm, _ = ddflare.NewDNSManager(ddflare.Dyn)
 	case "noip":
 		conf.dm, _ = ddflare.NewDNSManager(ddflare.NoIP)
 	case "ddns":
