@@ -37,14 +37,6 @@ func New() *Cloudflare {
 	return &Cloudflare{}
 }
 
-func (c *Cloudflare) Add(fqdn string) error {
-	return fmt.Errorf("not implemented yet")
-}
-
-func (c *Cloudflare) Del(fqdn string) error {
-	return fmt.Errorf("not implemented yet")
-}
-
 func (c *Cloudflare) GetApiEndpoint() string {
 	return c.api.BaseURL
 }

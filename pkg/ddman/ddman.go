@@ -22,8 +22,6 @@ type DNSManager interface {
 	GetUserAgent() string
 	SetUserAgent(ua string)
 	Init(auth string) error
-	Add(fqdn string) error
-	Del(fqdn string) error
 	Resolve(fqdn string) (string, error)
 	Update(fqdn, ip string) error
 }

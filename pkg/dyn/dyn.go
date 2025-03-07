@@ -82,16 +82,6 @@ func (c *Client) Init(authToken string) error {
 	return nil
 }
 
-// Add is not implemented.
-func (c *Client) Add(fqdn string) error {
-	return fmt.Errorf("not supported")
-}
-
-// Del is not implemented.
-func (c *Client) Del(fqdn string) error {
-	return fmt.Errorf("not supported")
-}
-
 // Resolve returns the current IP address assigned to the FQDN passed as
 // parameter.
 func (c *Client) Resolve(fqdn string) (string, error) {
