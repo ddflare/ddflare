@@ -28,9 +28,9 @@ import (
 )
 
 type API struct {
-	APIToken  string // base64 encoded
-	BaseURL   string
-	UserAgent string
+	apiToken  string // base64 encoded
+	baseURL   string
+	userAgent string
 }
 
 type ReturnCode int
@@ -79,15 +79,15 @@ func New(endpoint, token, useragent string) (*API, error) {
 		return nil, fmt.Errorf("cannot instantiate new dyndns API: missing useragent")
 	}
 	return &API{
-		BaseURL:   endpoint,
-		APIToken:  base64.StdEncoding.EncodeToString([]byte(token)),
-		UserAgent: useragent,
+		baseURL:   endpoint,
+		apiToken:  base64.StdEncoding.EncodeToString([]byte(token)),
+		userAgent: useragent,
 	}, nil
 }
 
 // Update updates the `fqdn` to the `ip` address passed as parameters.
 func (c *API) Update(fqdn, ip string) (ReturnCode, error) {
-	if c.APIToken == "" {
+	if c.apiToken == "" {
 		return MsgDataErr, fmt.Errorf("no authorization credentials found")
 	}
 	if fqdn == "" {
@@ -103,13 +103,13 @@ func (c *API) Update(fqdn, ip string) (ReturnCode, error) {
 		err error
 	)
 
-	log := slog.Default().With("endpoint", c.BaseURL, "fqdn", fqdn)
+	log := slog.Default().With("endpoint", c.baseURL, "fqdn", fqdn)
 
-	if req, err = http.NewRequest("GET", c.BaseURL+"/nic/update", nil); err != nil {
-		return MsgCommErr, fmt.Errorf("connection to %s failed: %w", c.BaseURL, err)
+	if req, err = http.NewRequest("GET", c.baseURL+"/nic/update", nil); err != nil {
+		return MsgCommErr, fmt.Errorf("connection to %s failed: %w", c.baseURL, err)
 	}
-	req.Header.Add("Authorization", "Basic "+c.APIToken)
-	req.Header.Add("User-Agent", c.UserAgent)
+	req.Header.Add("Authorization", "Basic "+c.apiToken)
+	req.Header.Add("User-Agent", c.userAgent)
 
 	q := req.URL.Query()
 	q.Add("hostname", fqdn)
@@ -117,18 +117,18 @@ func (c *API) Update(fqdn, ip string) (ReturnCode, error) {
 
 	req.URL.RawQuery = q.Encode()
 	if res, err = http.DefaultClient.Do(req); err != nil {
-		return MsgCommErr, fmt.Errorf("connection to %s failed: %w", c.BaseURL, err)
+		return MsgCommErr, fmt.Errorf("connection to %s failed: %w", c.baseURL, err)
 	}
 	defer res.Body.Close()
 
 	log.Debug("endpoint connected", "status", res.Status, "code", res.StatusCode)
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return MsgCommErr, fmt.Errorf("endpoint %q returned %d (%s) status", c.BaseURL, res.StatusCode, res.Status)
+		return MsgCommErr, fmt.Errorf("endpoint %q returned %d (%s) status", c.baseURL, res.StatusCode, res.Status)
 	}
 
 	var body []byte
 	if body, err = io.ReadAll(res.Body); err != nil || len(body) == 0 {
-		return MsgCommErr, fmt.Errorf("failure reading endpoint %q reply: %w", c.BaseURL, err)
+		return MsgCommErr, fmt.Errorf("failure reading endpoint %q reply: %w", c.baseURL, err)
 	}
 	log.Debug("parsing reply message", "body", string(body))
 
