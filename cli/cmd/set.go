@@ -23,16 +23,18 @@ import (
 
 	"github.com/fgiudici/ddflare"
 	"github.com/fgiudici/ddflare/pkg/net"
+	"github.com/fgiudici/ddflare/pkg/version"
 	"github.com/urfave/cli/v2"
 )
 
 const (
-	IPADDR   = "DDFLARE_IP_ADDRESS"
-	TOKEN    = "DDFLARE_API_TOKEN"
-	INTERVAL = "DDFLARE_CHECK_INTERVAL"
-	SVC      = "DDFLARE_SERVICE_PROVIDER"
-	USER     = "DDFLARE_USER"
-	PASSWD   = "DDFLARE_PASSWORD"
+	USERAGENT = "ddflare-go-"
+	IPADDR    = "DDFLARE_IP_ADDRESS"
+	TOKEN     = "DDFLARE_API_TOKEN"
+	INTERVAL  = "DDFLARE_CHECK_INTERVAL"
+	SVC       = "DDFLARE_SERVICE_PROVIDER"
+	USER      = "DDFLARE_USER"
+	PASSWD    = "DDFLARE_PASSWORD"
 )
 
 func newSetCommand() *cli.Command {
@@ -152,7 +154,7 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 		conf.dm, _ = ddflare.NewDNSManager(ddflare.DDNS)
 		conf.dm.SetApiEndpoint(svc)
 	}
-
+	conf.dm.SetUserAgent(USERAGENT + version.Version)
 	token := cCtx.String("api-token")
 	if token == "" {
 		user := cCtx.String("user")
