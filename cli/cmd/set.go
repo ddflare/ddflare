@@ -154,7 +154,6 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 		conf.dm, _ = ddflare.NewDNSManager(ddflare.DDNS)
 		conf.dm.SetApiEndpoint(svc)
 	}
-	conf.dm.SetUserAgent(USERAGENT + version.Version)
 	token := cCtx.String("api-token")
 	if token == "" {
 		user := cCtx.String("user")
@@ -167,6 +166,8 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 	if err := conf.dm.Init(token); err != nil {
 		return nil, errors.New("DNS Manager auth initialization failed")
 	}
+
+	conf.dm.SetUserAgent(USERAGENT + version.Version)
 
 	conf.address = cCtx.String("address")
 	if conf.address == "" {
