@@ -40,7 +40,7 @@ from the [release page](https://github.com/ddflare/ddflare/releases/latest).
 
 Get a x86_64 linux binary example:
 ```bash
-wget https://github.com/ddflare/ddflare/releases/download/v0.4.0/ddflare-linux-amd64
+wget https://github.com/ddflare/ddflare/releases/download/v0.6.0/ddflare-linux-amd64
 sudo install ddflare-linux-amd64 /usr/local/bin/ddflare
 ```
 
@@ -48,7 +48,7 @@ Container images are availble as well on the github repository. Run ddflare
 via docker with:
 
 ```bash
-docker run -ti --rm ghcr.io/ddflare/ddflare:0.4.0
+docker run -ti --rm ghcr.io/ddflare/ddflare:0.6.0
 ```
 
 Available commands
