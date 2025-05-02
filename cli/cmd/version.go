@@ -21,7 +21,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/fgiudici/ddflare/pkg/version"
+	"github.com/ddflare/ddflare/pkg/version"
 )
 
 func newVersionCommand() *cli.Command {

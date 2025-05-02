@@ -12,7 +12,7 @@ ENV CGO_ENABLED=0
 ARG VERSION=v0.0.0
 RUN go build \
     -ldflags "-w -s \
-    -X github.com/fgiudici/ddflare/pkg/version.Version=$VERSION" \
+    -X github.com/ddflare/ddflare/pkg/version.Version=$VERSION" \
     -o /ddflare \
     /app/cli
 

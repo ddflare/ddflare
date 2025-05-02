@@ -1,7 +1,7 @@
 GIT_COMMIT?=$(shell git rev-parse --short HEAD)
 GIT_VERSION?=$(shell git describe --tags 2>/dev/null || echo "v0.0.0-"$(GIT_COMMIT))
 IMG_REG?=ghcr.io
-IMG_REPO?=fgiudici/ddflare
+IMG_REPO?=ddflare/ddflare
 IMG_TAG?=$(GIT_VERSION:v%=%)
 
 export ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -9,7 +9,7 @@ BUILD_DIR   := bin
 RELEASE_DIR := release
 
 LDFLAGS := -w -s
-LDFLAGS += -X "github.com/fgiudici/ddflare/pkg/version.Version=${GIT_VERSION}"
+LDFLAGS += -X "github.com/ddflare/ddflare/pkg/version.Version=${GIT_VERSION}"
 
 COVERFILE?=coverage.out
 

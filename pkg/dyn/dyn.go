@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/fgiudici/ddflare/pkg/ddman"
-	"github.com/fgiudici/ddflare/pkg/dyndnsapi"
-	"github.com/fgiudici/ddflare/pkg/net"
-	"github.com/fgiudici/ddflare/pkg/version"
+	"github.com/ddflare/ddflare/pkg/ddman"
+	"github.com/ddflare/ddflare/pkg/dyndnsapi"
+	"github.com/ddflare/ddflare/pkg/net"
+	"github.com/ddflare/ddflare/pkg/version"
 )
 
 var _ ddman.DNSManager = (*Client)(nil)

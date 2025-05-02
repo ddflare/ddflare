@@ -1,4 +1,4 @@
-module github.com/fgiudici/ddflare
+module github.com/ddflare/ddflare
 
 go 1.22
 

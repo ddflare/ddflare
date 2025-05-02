@@ -20,10 +20,10 @@ package ddflare
 import (
 	"fmt"
 
-	"github.com/fgiudici/ddflare/pkg/cflare"
-	"github.com/fgiudici/ddflare/pkg/ddman"
-	"github.com/fgiudici/ddflare/pkg/dyn"
-	"github.com/fgiudici/ddflare/pkg/net"
+	"github.com/ddflare/ddflare/pkg/cflare"
+	"github.com/ddflare/ddflare/pkg/ddman"
+	"github.com/ddflare/ddflare/pkg/dyn"
+	"github.com/ddflare/ddflare/pkg/net"
 )
 
 // DNSManagerType identifies the service type used for DDNS updates.

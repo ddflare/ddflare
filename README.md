@@ -1,10 +1,10 @@
 <h1 align="center">
-  <img align="center" style="padding-bottom:10px" src="https://raw.githubusercontent.com/fgiudici/ddflare/refs/heads/main/assets/logo/ddflare-logotype.svg#gh-light-mode-only" width=130 alt="logo">
-  <img align="center" style="padding-bottom:10px" src="https://raw.githubusercontent.com/fgiudici/ddflare/refs/heads/main/assets/logo/ddflare-logotype-dark.svg#gh-dark-mode-only" width=130 alt="logo">
+  <img align="center" style="padding-bottom:10px" src="https://raw.githubusercontent.com/ddflare/ddflare/refs/heads/main/assets/logo/ddflare-logotype.svg#gh-light-mode-only" width=130 alt="logo">
+  <img align="center" style="padding-bottom:10px" src="https://raw.githubusercontent.com/ddflare/ddflare/refs/heads/main/assets/logo/ddflare-logotype-dark.svg#gh-dark-mode-only" width=130 alt="logo">
   <br>
 
-  [![example workflow](https://github.com/fgiudici/ddflare/actions/workflows/build.yaml/badge.svg)](https://github.com/fgiudici/ddflare/actions/workflows/build.yaml)
-  [![example workflow](https://github.com/fgiudici/ddflare/actions/workflows/container-image.yaml/badge.svg)](https://github.com/fgiudici/ddflare/actions/workflows/container-image.yaml)
+  [![release workflow](https://github.com/ddflare/ddflare/actions/workflows/build.yaml/badge.svg)](https://github.com/ddflare/ddflare/actions/workflows/build.yaml)
+  [![container workflow](https://github.com/ddflare/ddflare/actions/workflows/container-image.yaml/badge.svg)](https://github.com/ddflare/ddflare/actions/workflows/container-image.yaml)
 </h1>
 
 ddflare is a [DDNS (Dynamic DNS)](https://en.wikipedia.org/wiki/Dynamic_DNS) library that allows DNS record
@@ -36,11 +36,11 @@ Quickstart CLI
 Get ddflare
 ----
 ddflare CLI is released as statically compiled binaries for different OS/architetures that you can grab
-from the [release page](https://github.com/fgiudici/ddflare/releases/latest).
+from the [release page](https://github.com/ddflare/ddflare/releases/latest).
 
 Get a x86_64 linux binary example:
 ```bash
-wget https://github.com/fgiudici/ddflare/releases/download/v0.4.0/ddflare-linux-amd64
+wget https://github.com/ddflare/ddflare/releases/download/v0.4.0/ddflare-linux-amd64
 sudo install ddflare-linux-amd64 /usr/local/bin/ddflare
 ```
 
@@ -48,7 +48,7 @@ Container images are availble as well on the github repository. Run ddflare
 via docker with:
 
 ```bash
-docker run -ti --rm ghcr.io/fgiudici/ddflare:0.4.0
+docker run -ti --rm ghcr.io/ddflare/ddflare:0.4.0
 ```
 
 Available commands
@@ -143,7 +143,7 @@ The ddflare go library allows updates of DNS type A records with the actual Publ
 
 **Example**:
 ```go
-import "github.com/fgiudici/ddflare"
+import "github.com/ddflare/ddflare"
 
 func main() {
   // fqdn to be updated

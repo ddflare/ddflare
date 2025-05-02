@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/fgiudici/ddflare/pkg/net"
+	"github.com/ddflare/ddflare/pkg/net"
 	"github.com/urfave/cli/v2"
 )
 

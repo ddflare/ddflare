@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	cf "github.com/cloudflare/cloudflare-go"
-	"github.com/fgiudici/ddflare/pkg/ddman"
-	"github.com/fgiudici/ddflare/pkg/net"
+	"github.com/ddflare/ddflare/pkg/ddman"
+	"github.com/ddflare/ddflare/pkg/net"
 )
 
 var _ ddman.DNSManager = (*Cloudflare)(nil)
