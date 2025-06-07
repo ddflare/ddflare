@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/ddflare/ddflare"
-	"github.com/ddflare/ddflare/pkg/net"
 	"github.com/ddflare/ddflare/pkg/version"
 	"github.com/urfave/cli/v2"
 )
@@ -170,12 +169,6 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 	conf.dm.SetUserAgent(USERAGENT + version.Version)
 
 	conf.address = cCtx.String("address")
-	if conf.address == "" {
-		var err error
-		if conf.address, err = net.GetMyPub(); err != nil {
-			return nil, err
-		}
-	}
 	conf.interval = cCtx.Duration("interval")
 	conf.loop = cCtx.Bool("loop")
 	if conf.loop && conf.interval == time.Duration(0) {
