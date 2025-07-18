@@ -118,7 +118,7 @@ func (c *Cloudflare) Update(fqdn, ip string) error {
 
 func getZone(fqdn string) (string, error) {
 	domain := strings.Split(fqdn, ".")
-	if len(domain) < 2 {
+	if len(domain) < 2 || domain[len(domain)-2] == "" || domain[len(domain)-1] == "" {
 		return "", fmt.Errorf("%q is not a valid dns name", fqdn)
 	}
 	zone := domain[len(domain)-2] + "." + domain[len(domain)-1]
