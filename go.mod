@@ -3,7 +3,7 @@ module github.com/ddflare/ddflare
 go 1.24.2
 
 require (
-	github.com/cloudflare/cloudflare-go v0.115.0
+	github.com/cloudflare/cloudflare-go v0.116.0
 	github.com/urfave/cli/v2 v2.27.7
 )
 
