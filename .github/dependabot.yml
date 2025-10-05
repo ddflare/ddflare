@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"         # Location of go.mod
+    schedule:
+      interval: "weekly"   # Check for updates weekly; you can change to "daily" or "monthly"
+    labels:
+      - dependencies
+  - package-ecosystem: "docker"
+    directory: "/"         # Location of Dockerfile
+    schedule:
+      interval: "weekly"
+    labels:
+      - docker
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: "weekly"
+    labels:
+      - github_actions
