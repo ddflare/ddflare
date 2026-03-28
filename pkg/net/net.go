@@ -28,6 +28,7 @@ func GetMyPub() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer res.Body.Close()
 
 	ip, err := io.ReadAll(res.Body)
 	if err != nil {
