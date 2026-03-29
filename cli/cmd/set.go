@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -140,18 +141,24 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 	}
 
 	svc := cCtx.String("svc")
+	var err error
 	switch svc {
 	case "cflare":
-		conf.dm, _ = ddflare.NewDNSManager(ddflare.Cloudflare)
+		conf.dm, err = ddflare.NewDNSManager(ddflare.Cloudflare)
 	case "dyn":
-		conf.dm, _ = ddflare.NewDNSManager(ddflare.Dyn)
+		conf.dm, err = ddflare.NewDNSManager(ddflare.Dyn)
 	case "noip":
-		conf.dm, _ = ddflare.NewDNSManager(ddflare.NoIP)
+		conf.dm, err = ddflare.NewDNSManager(ddflare.NoIP)
 	case "ddns":
-		conf.dm, _ = ddflare.NewDNSManager(ddflare.DDNS)
+		conf.dm, err = ddflare.NewDNSManager(ddflare.DDNS)
 	default:
-		conf.dm, _ = ddflare.NewDNSManager(ddflare.DDNS)
-		conf.dm.SetApiEndpoint(svc)
+		conf.dm, err = ddflare.NewDNSManager(ddflare.DDNS)
+		if err == nil {
+			conf.dm.SetApiEndpoint(svc)
+		}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to create DNS manager for service %q: %w", svc, err)
 	}
 	token := cCtx.String("api-token")
 	if token == "" {
@@ -163,7 +170,7 @@ func newSetConf(cCtx *cli.Context) (*setConf, error) {
 		token = user + ":" + passwd
 	}
 	if err := conf.dm.Init(token); err != nil {
-		return nil, errors.New("DNS Manager auth initialization failed")
+		return nil, fmt.Errorf("DNS Manager auth initialization failed: %w", err)
 	}
 
 	conf.dm.SetUserAgent(USERAGENT + version.Version)
