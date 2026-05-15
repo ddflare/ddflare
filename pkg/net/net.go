@@ -43,8 +43,11 @@ func Resolve(fqdn string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("cannot resolve %q: %w", fqdn, err)
 	}
-
-	// Returns the first address only
-	// TODO: check the number of returned addresses and pass back the IPv4 one
-	return addr[0], nil
+	// Return first IPv4 address
+	for _, a := range addr {
+		if net.ParseIP(a).To4() != nil {
+			return a, nil
+		}
+	}
+	return "", fmt.Errorf("no IPv4 address found for %q", fqdn)
 }
